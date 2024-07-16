@@ -18,7 +18,7 @@ divide_value = random.randint(0,9)/10 + 2
 # Ler a imagem e redimensionar
 img1 = cv2.imread(image1_path)
 img2 = cv2.imread(image2_path)
-
+name=''
 # Verifique se as imagens foram lidas corretamente
 if img1 is None or img2 is None:
     print(f"Erro ao ler a imagem")
@@ -49,7 +49,8 @@ def process_and_display_images(img):
         plt.axis('off')
 
     plt.tight_layout()
-    plt.show()
+    plt.savefig(name)  
+
 
 
 def merge_images():
@@ -73,8 +74,11 @@ def merge_images():
         plt.axis('off')
 
     plt.tight_layout()
-    plt.show()
-    
+    plt.savefig(name)  
+
+name = 'output/ex6_1.png'
 process_and_display_images(img1)
+name = 'output/ex6_2.png'
 process_and_display_images(img2)
+name = 'output/ex6_3.png'
 merge_images()

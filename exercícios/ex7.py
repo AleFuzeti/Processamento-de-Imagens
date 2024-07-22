@@ -102,18 +102,3 @@ def plot_combined(images_data):
 
     # Ajustar layout para evitar sobreposição de subplots
     plt.tight_layout()
-
-# Processar as três imagens
-images_data = []
-images_data.append(process_image(img1))
-images_data.append(process_image(img2))
-images_data.append(process_image(img3))
-
-# Plotar e salvar a figura combinada
-plot_combined(images_data)
-
-output_dir = 'output'
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-
-plt.savefig(os.path.join(output_dir, 'ex7_combined_info.png'))

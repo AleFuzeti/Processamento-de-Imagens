@@ -1,0 +1,87 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+def dft_image(img):
+    dft = cv2.dft(np.float32(img), flags=cv2.DFT_COMPLEX_OUTPUT)
+    dft_shift = np.fft.fftshift(dft)
+    magnitude_spectrum = 20 * np.log(cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1]) + 1)
+    return dft_shift, magnitude_spectrum
+
+def apply_filter(dft_shift, filter_mask):
+    fshift_filtered = dft_shift * filter_mask
+    fshift_filtered = np.fft.ifftshift(fshift_filtered)
+    img_back = cv2.idft(fshift_filtered)
+    img_back = cv2.magnitude(img_back[:, :, 0], img_back[:, :, 1])
+    return img_back
+
+def create_filters(shape, filter_type='low', cutoff=30):
+    rows, cols = shape
+    crow, ccol = rows // 2 , cols // 2
+    mask = np.zeros((rows, cols, 2), np.float32)
+    
+    if filter_type == 'low':
+        mask[crow-cutoff:crow+cutoff, ccol-cutoff:ccol+cutoff] = 1
+    elif filter_type == 'high':
+        mask[:crow-cutoff, :] = 1
+        mask[crow+cutoff:, :] = 1
+        mask[:, :ccol-cutoff] = 1
+        mask[:, ccol+cutoff:] = 1
+
+    return mask
+
+def add_periodic_noise(img, frequency=5):
+    rows, cols = img.shape
+    noise = np.sin(2 * np.pi * frequency * np.arange(cols) / cols)
+    noise = np.tile(noise, (rows, 1))
+    noisy_img = img + (noise * 50)  # Ajustar a intensidade do ruído
+    return noisy_img
+
+def process_image(image_path):
+    # Carregar e converter a imagem para escala de cinza
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    img_resized = cv2.resize(img, new_size)
+    
+    # Adicionar ruído periódico
+    noisy_img = add_periodic_noise(img_resized)
+    
+    # Calcular a DFT e obter o espectro de Fourier
+    dft_shift, magnitude_spectrum = dft_image(noisy_img)
+    
+    # Criar filtros passa-baixa e passa-alta
+    low_pass_filter = create_filters(noisy_img.shape, 'low', cutoff=30)
+    high_pass_filter = create_filters(noisy_img.shape, 'high', cutoff=30)
+    
+    # Aplicar os filtros na DFT
+    img_low_pass = apply_filter(dft_shift, low_pass_filter)
+    img_high_pass = apply_filter(dft_shift, high_pass_filter)
+    
+    return img_resized, noisy_img, magnitude_spectrum, img_low_pass, img_high_pass
+
+def plot_results(images_data):
+    plt.figure(figsize=(18, 12))
+    
+    titles = ['Imagem Original', 'Imagem com Ruído', 'Espectro de Fourier', 
+              'Filtro Passa-Baixa', 'Filtro Passa-Alta']
+    
+    for i, img in enumerate(images_data):
+        plt.subplot(2, 3, i+1)
+        if i == 2:
+            plt.imshow(img, cmap='gray')
+        else:
+            plt.imshow(img, cmap='gray')
+        plt.title(titles[i])
+        plt.axis('off')
+    
+    plt.tight_layout()
+    plt.show()
+
+# Configurações
+new_size = (400, 400)
+image_path = 'img/lenna_dotted.png'  # Substitua pelo caminho da sua imagem
+
+# Processar a imagem e obter os resultados
+img_resized, noisy_img, magnitude_spectrum, img_low_pass, img_high_pass = process_image(image_path)
+
+# Exibir os resultados
+plot_results([img_resized, noisy_img, magnitude_spectrum, img_low_pass, img_high_pass])
